@@ -1,0 +1,246 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox
+
+# thư viện xử lý đồ thị (cốt lõi thuật toán)
+import networkx as nx
+
+# thư viện vẽ đồ thị
+import matplotlib.pyplot as plt
+
+# thư viện lưu file JSON
+import json
+
+class GraphApp:
+    def __init__(self, root):
+        """
+        Hàm khởi tạo chương trình
+        - root: cửa sổ chính tkinter
+        """
+        self.root = root
+        self.root.title("Graph Visualization App")
+
+        # Tạo đồ thị (mặc định là vô hướng)
+        self.G = nx.Graph()
+
+        # pos: lưu vị trí các đihr khi vẽ
+        self.pos = {}
+        self.directed = False
+
+        # Gọi hàm tạo giao diện
+        self.create_ui()
+# ====================== GIAO DIỆN ====================
+    def create_ui(self):
+        """
+        Tạo các nút chức năng trên giao diện
+        """
+        frame = tk.Frame(self.root)
+        frame.pack()
+
+        tk.Button(frame, text="Thêm đỉnh", command=self.add_node).grid(row=0, column=0)
+        tk.Button(frame, text="Thêm cạnh", command=self.add_edge).grid(row=0, column=1)
+        tk.Button(frame, text="Vẽ đồ thị", command=self.draw_graph).grid(row=0, column=2)
+
+        tk.Button(frame, text="Lưu", command=self.save_graph).grid(row=1, column=0)
+        tk.Button(frame, text="Tải", command=self.load_graph).grid(row=1, column=1)
+
+        tk.Button(frame, text="BFS", command=self.bfs).grid(row=2, column=0)
+        tk.Button(frame, text="DFS", command=self.dfs).grid(row=2, column=1)
+        tk.Button(frame, text="Shortest Path", command=self.shortest_path).grid(row=2, column=2)
+
+        tk.Button(frame, text="Check Bipartite", command=self.check_bipartite).grid(row=3, column=0)
+
+        tk.Button(frame, text="Prim", command=self.prim).grid(row=4, column=0)
+        tk.Button(frame, text="Kruskal", command=self.kruskal).grid(row=4, column=1)
+
+        tk.Button(frame, text="Ford-Fulkerson", command=self.Ford_Fulkerson).grid(row=5, column=0)
+
+        tk.Button(frame, text="Fleury", command=self.fleury).grid(row=6, column=0)
+        tk.Button(frame, text="Hierholzer", command=self.hierholzer).grid(row=6, column=1)
+
+# ================= PHẦN CƠ BẢN =================
+    # =========== TẠO ĐỒ THỊ ===========
+    # Chức năng 1, 2
+    def add_node(self):
+        """
+        Thêm một đỉnh vào đồ thị
+        """
+        node = simple_input("Nhập đỉnh:")
+        if node:
+            self.G.add_node(node) # networkx thêm node
+
+    def add_edge(self):
+        """
+        Thêm một cạnh (có thể có trọng số)
+        """
+        u = simple_input("Đỉnh u:")
+        v = simple_input("Đỉnh v:")
+        w = simple_input("Trọng số:", is_int=True)
+
+        if u and v:
+            # weight là trọng số cạnh
+            self.G.add_edge(u, v, weight=int(w) if w else 1)
+
+    def draw_graph(self):
+        """
+        Vẽ đồ thị bằng matplotlib
+        """
+        # spring_layout: tự động bố trí đỉnh
+        self.pos = nx.spring_layout(self.G)
+
+        # Lấy trọng số cạnh để hiển thị
+        labels = nx.get_edge_attributes(self.G, 'weight')
+
+        # Vẽ node + edge
+        nx.draw(self.G, self.pos, with_labels=True)
+
+        # Vẽ trọng số
+        nx.draw_networkx_edge_labels(self.G, self.pos, edge_labels=labels)
+
+        plt.show()
+
+    def save_graph(self):
+        """
+        Lưu đồ thị ra file JSON
+        """
+        file = filedialog.asksaveasfilename(defaultextension=".json")
+
+        # node_link_data: chuyển đồ thị -> dạng JSON
+        data = nx.node_link_data(self.G)
+
+        with open(file, 'w') as f:
+            json.dump(data, f)
+
+    def load_graph(self):
+        """
+        Tải đồ thị từ file JSON
+        """
+        file = filedialog.askopenfilename()
+
+        with open(file, 'r') as f:
+            data = json.load(f)
+
+            # node_link_graph: JSON -> đồ thị
+            self.G = nx.node_link_graph(data)
+
+    # ================= THUẬT TOÁN =================
+    # Chức năng 3, 4, 5, 6
+
+    def shortest_path(self):
+        """
+        Tìm đường đi ngắn nhất
+        """
+        u = simple_input("From:")
+        v = simple_input("To:")
+        try:
+            path = nx.shortest_path(self.G, u, v, weight='weight')
+            messagebox.showinfo("Path", str(path))
+        except:
+            messagebox.showerror("Error", "Không tìm được đường")
+
+    def bfs(self):
+        """
+        Duyệt theo chiều rộng
+        """
+        start = simple_input("Start node:")
+        if start:
+            result = list(nx.bfs_tree(self.G, start))
+            messagebox.showinfo("BFS", str(result))
+
+    def dfs(self):
+        """
+        Duyệt theo chiều sâu
+        """
+        start = simple_input("Start node:")
+        if start:
+            result = list(nx.dfs_tree(self.G, start))
+            messagebox.showinfo("DFS", str(result))
+
+    def check_bipartite(self):
+        """
+        Kiểm tra đồ thị có phải 2 phía không
+        """
+        result = nx.is_bipartite(self.G)
+        messagebox.showinfo("Bipartite", str(result))
+
+# =================== NÂNG CAO ====================
+
+    def prim(self):
+        T = nx.minimum_spanning_tree(self.G, algorithm="prim")
+        self.draw_special(T, "Prim MST")
+
+    def kruskal(self):
+        T = nx.minimum_spanning_tree(self.G, algorithm="kruskal")
+        self.draw_special(T, "Kruskal MST")
+
+    def Ford_Fulkerson(self):
+        s = simple_input("Source:")
+        t = simple_input("Sink:")
+        try:
+            flow = nx.maximum_flow(self.G, s, t)
+            messagebox.showinfo("Ford-Fulkerson", str(flow[0]))
+        except:
+            messagebox.showerror("Error", "Không tính được")
+
+    def fleury(self):
+        if not nx.is_eulerian(self.G):
+            messagebox.showerror("Error", "Không phải đồ thị Euler")
+            return
+        path = list(nx.eulerian_path(self.G))
+        messagebox.showinfo("Fleury", str(path))
+
+    def hierholzer(self):
+        if not nx.is_eulerian(self.G):
+            messagebox.showerror("Error", "Không phải Euler")
+            return
+        cycle = list(nx.eulerian_circuit(self.G))
+        messagebox.showinfo("Hierholzer", str(cycle))
+
+# ================= HÀM PHỤ =================
+
+    def draw_special(self, G2, title):
+        """
+        Vẽ đồ thị kết quả
+        """
+        pos = nx.spring_layout(G2)
+        labels = nx.get_edge_attributes(G2, 'weight')
+        nx.draw(G2, pos, with_labels=True, node_color='lightgreen')
+        nx.draw_networkx_edge_labels(G2, pos, edge_labels=labels)
+        plt.title(title)
+        plt.show()
+
+
+def simple_input(text, is_int=False):
+    """
+    Tạo cửa sổ nhập dữ liệu
+    """
+    win = tk.Toplevel()
+    win.title(text)
+
+    tk.Label(win, text=text).pack()
+    entry = tk.Entry(win)
+    entry.pack()
+
+    result = []
+
+    def submit():
+        val = entry.get()
+        if is_int:
+            try:
+                val = int(val)
+            except:
+                val = None
+        result.append(val)
+        win.destroy()
+
+    tk.Button(win, text="OK", command=submit).pack()
+    win.wait_window()
+
+    return result[0] if result else None
+
+
+# ================= RUN =================
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = GraphApp(root)
+    root.mainloop()
