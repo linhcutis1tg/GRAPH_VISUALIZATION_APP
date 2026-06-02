@@ -6,6 +6,7 @@ Vị trí ứng tuyển mục tiêu: Software Engineer Intern / Backend Develope
 Ngôn ngữ sử dụng: Python (Tkinter, NetworkX, Matplotlib)
 
 **1. TỔNG QUAN DỰ ÁN (PROJECT OVERVIEW)**
+
 1.1. Đặt vấn đề & Động lực phát triển
 Lý thuyết đồ thị (Graph Theory) là một trong những phần cốt lõi của Cấu trúc dữ liệu & Giải thuật và Toán rời rạc, có ứng dụng cực kỳ rộng rãi trong mạng xã hội, hệ thống định vị (GPS), tối ưu hóa mạng lưới vận chuyển và luồng dữ liệu. Tuy nhiên, việc hiểu và vận hành các thuật toán trên đồ thị qua các dòng code thuần (CLI) thường trừu tượng và khó tiếp cận.
 
